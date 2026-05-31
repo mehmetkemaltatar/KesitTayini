@@ -411,7 +411,6 @@
         <div id="topbar">
             <button id="hamburger" onclick="toggleSidebar()">☰</button>
             <h1 id="page-title">Kesit Tayini Hesaplayıcı</h1>
-            <div id="current-date" style="color:var(--txt2); font-size:.9rem; white-space:nowrap"></div>
         </div>
 
         <div id="content">
@@ -781,10 +780,6 @@
     </div>
 
     <script>
-        document.getElementById('current-date').innerText = new Date().toLocaleDateString('tr-TR', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
-
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
             document.getElementById('sidebar-overlay').classList.toggle('open');
