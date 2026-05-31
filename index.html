@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Kesit Tayini - Elektrik Hesaplama</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #1a2744;
+            --st: #cbd5e1;
+            --or: #f97316;
+            --red: #ef4444;
+            --grn: #22c55e;
+            --ylw: #eab308;
+            --bg: #f8fafc;
+            --card: #fff;
+            --bdr: #e2e8f0;
+            --txt: #1e293b;
+            --txt2: #64748b
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Figtree', sans-serif;
+            background: var(--bg);
+            color: var(--txt);
+            display: flex;
+            height: 100vh;
+            overflow: hidden
+        }
+
+        #sidebar {
+            width: 240px;
+            background: var(--navy);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0
+        }
+
+        .logo {
+            padding: 24px 20px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            border-bottom: 1px solid rgba(255, 255, 255, .08)
+        }
+
+        .logo span {
+            color: var(--or)
+        }
+
+        #sidebar nav {
+            flex: 1;
+            padding: 15px 0
+        }
+
+        #sidebar nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--st);
+            text-decoration: none;
+            font-size: .9rem;
+            cursor: pointer;
+            transition: .15s
+        }
+
+        #sidebar nav a:hover {
+            background: rgba(255, 255, 255, .08);
+            color: #fff
+        }
+
+        #sidebar nav a.active {
+            background: var(--or);
+            color: #fff
+        }
+
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        #topbar {
+            height: 64px;
+            background: var(--card);
+            border-bottom: 1px solid var(--bdr);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            flex-shrink: 0
+        }
+
+        #topbar h1 {
+            font-size: 1.2rem;
+            font-weight: 600
+        }
+
+        #content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--bdr);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            margin-bottom: 24px
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--navy);
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px
+        }
+
+        .form-group {
+            margin-bottom: 16px
+        }
+
+        label {
+            display: block;
+            font-size: .85rem;
+            font-weight: 600;
+            color: var(--txt2);
+            margin-bottom: 6px
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--bdr);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: .9rem;
+            outline: none;
+            transition: .2s
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--or);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1)
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: .95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .btn-primary {
+            background: var(--or);
+            color: #fff
+        }
+
+        .btn-primary:hover {
+            background: #ea580c;
+            transform: translateY(-1px)
+        }
+
+        .result-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+            display: none
+        }
+
+        .res-item {
+            padding: 16px;
+            background: #f1f5f9;
+            border-radius: 12px;
+            text-align: center
+        }
+
+        .res-val {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-top: 4px
+        }
+
+        .res-lbl {
+            font-size: .75rem;
+            color: var(--txt2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px
+        }
+
+        .highlight {
+            background: #fff7ed;
+            border: 2px solid var(--or)
+        }
+
+        .highlight .res-val {
+            color: var(--or)
+        }
+
+        #history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .9rem
+        }
+
+        #history-table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--bdr);
+            color: var(--txt2)
+        }
+
+        #history-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--bdr)
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: .8rem;
+            font-weight: 600
+        }
+
+        .badge-success {
+            background: #dcfce7;
+            color: #166534
+        }
+
+        .badge-warning {
+            background: #fef9c3;
+            color: #713f12
+        }
+
+        /* Settings Modal Mockup */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100
+        }
+
+        .modal {
+            background: #fff;
+            padding: 24px;
+            border-radius: 16px;
+            width: 400px;
+            max-width: 90%
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar">
+        <div class="logo">⚡ <span>Kesit</span>Tayini</div>
+        <nav>
+            <a href="#" class="active" onclick="showPage('calc')">📐 Trafodan Enerji İzni</a>
+            <a href="#" onclick="showPage('network')">🏗️ Dağıtım Şebekesi</a>
+            <a href="#" onclick="showPage('history')">📜 Geçmiş</a>
+            <a href="#" onclick="showPage('settings')">⚙️ Ayarlar</a>
+        </nav>
+    </div>
+
+    <div id="main">
+        <div id="topbar">
+            <h1 id="page-title">Kesit Tayini Hesaplayıcı</h1>
+            <div id="current-date" style="color:var(--txt2); font-size:.9rem"></div>
+        </div>
+
+        <div id="content">
+            <!-- CALCULATOR PAGE -->
+            <div id="page-calc">
+                <div class="card">
+                    <div class="card-title">🔌 Parametre Girişi</div>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label>Talep Gücü (kW)</label>
+                            <input type="number" id="talep_gucu" placeholder="Örn: 50" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Trafo/Kofre Mesafe (Metre)</label>
+                            <input type="number" id="mesafe" placeholder="Örn: 50" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Hat Tipi</label>
+                            <select id="hat_tipi">
+                                <option value="yeralti">Yer Altı (NYY)</option>
+                                <option value="havai">Havai Hat</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button class="btn btn-primary" onclick="calculate()">🚀 Hesapla</button>
+                    </div>
+                </div>
+
+                <div id="result-container" class="card" style="display:none">
+                    <div class="card-title">📊 Hesaplama Sonuçları</div>
+                    <div id="result-success" class="result-box" style="display:grid">
+                        <div class="res-item highlight">
+                            <div class="res-lbl">Önerilen Kesit</div>
+                            <div id="res-cable" class="res-val">-</div>
+                        </div>
+                        <div class="res-item">
+                            <div class="res-lbl">Gerilim Düşümü</div>
+                            <div id="res-e" class="res-val">-%</div>
+                        </div>
+                        <div class="res-item">
+                            <div class="res-lbl">Hesaplanan Akım</div>
+                            <div id="res-i" class="res-val">- A</div>
+                        </div>
+                        <div class="res-item">
+                            <div class="res-lbl">Mesafe</div>
+                            <div id="res-mesafe" class="res-val">- m</div>
+                        </div>
+                    </div>
+                    <div id="error-msg"
+                        style="background:#fee2e2; border:1px solid #fca5a5; border-radius:10px; padding:16px; margin-top:16px; color:#991b1b; font-weight:500; font-size:.9rem; display:none">
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- NETWORK PAGE -->
+            <div id="page-network" style="display:none">
+
+                <div class="card">
+                    <div class="card-title">🔌 Parametre Girişi</div>
+                    <div style="display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap;">
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="radio" name="net-input-mode" value="abone" checked onchange="toggleNetInputMode()"> Abone Sayısı ile
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="radio" name="net-input-mode" value="guc" onchange="toggleNetInputMode()"> Toplam Güç ile
+                        </label>
+                    </div>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label>TR/SDK Mesafe (metre)</label>
+                            <input type="number" id="net-l-tp" placeholder="Örn: 50" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label>TR/SDK Mevcut Kablo Kesiti</label>
+                            <select id="net-s-tp">
+                                <option value="0">Yok</option>
+                                <option value="6">4x6 (6 mm²)</option>
+                                <option value="10">4x10 (10 mm²)</option>
+                                <option value="16">4x16 (16 mm²)</option>
+                                <option value="25">3x25/16 (25 mm²)</option>
+                                <option value="35">3x35/16 (35 mm²)</option>
+                                <option value="50">3x50/25 (50 mm²)</option>
+                                <option value="70">3x70/35 (70 mm²)</option>
+                                <option value="95" selected>3x95/50 (95 mm²)</option>
+                                <option value="120">3x120/70 (120 mm²)</option>
+                                <option value="150">3x150/70 (150 mm²)</option>
+                                <option value="185">3x185/95 (185 mm²)</option>
+                                <option value="240">3x240/120 (240 mm²)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>TR/SDK Kablo Adedi</label>
+                            <input type="number" id="net-n-tp" value="1" min="1" max="4" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Bağlantı Hattı Mesafe (metre)</label>
+                            <input type="number" id="net-l-tsdk" placeholder="Örn: 30" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Bağlantı Hattı Kesiti (otomatik hesaplanır)</label>
+                            <select id="net-s-tsdk">
+                                <option value="0">Yok</option>
+                                <option value="6">4x6 (6 mm²)</option>
+                                <option value="10">4x10 (10 mm²)</option>
+                                <option value="16">4x16 (16 mm²)</option>
+                                <option value="25">3x25/16 (25 mm²)</option>
+                                <option value="35">3x35/16 (35 mm²)</option>
+                                <option value="50" selected>3x50/25 (50 mm²)</option>
+                                <option value="70">3x70/35 (70 mm²)</option>
+                                <option value="95">3x95/50 (95 mm²)</option>
+                                <option value="120">3x120/70 (120 mm²)</option>
+                                <option value="150">3x150/70 (150 mm²)</option>
+                                <option value="185">3x185/95 (185 mm²)</option>
+                                <option value="240">3x240/120 (240 mm²)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Bağlantı Hattı Kablo Adedi</label>
+                            <input type="number" id="net-n-tsdk" value="1" min="1" max="4" step="1">
+                        </div>
+                    </div>
+
+                    <div id="net-abone-fields">
+                        <div style="font-weight:600; color:var(--navy); margin-bottom:12px; font-size:.9rem;">👥 Abone Bilgileri</div>
+                        <div class="grid">
+                            <div class="form-group">
+                                <label>Mevcut Mesken Abone Sayısı</label>
+                                <input type="number" id="net-n-mesken-mevcut" value="0" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Mevcut Ticarethane Abone Sayısı</label>
+                                <input type="number" id="net-n-ticaret-mevcut" value="0" min="0">
+                            </div>
+                            <div class="form-group" style="background:#fff7ed; border:2px solid #f97316; border-radius:10px; padding:12px;">
+                                <label style="color:#ea580c; font-weight:700;">➕ Yeni Mesken Abone Sayısı</label>
+                                <input type="number" id="net-n-mesken-yeni" value="0" min="0">
+                            </div>
+                            <div class="form-group" style="background:#fff7ed; border:2px solid #f97316; border-radius:10px; padding:12px;">
+                                <label style="color:#ea580c; font-weight:700;">➕ Yeni Ticarethane Abone Sayısı</label>
+                                <input type="number" id="net-n-ticaret-yeni" value="0" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="net-guc-fields" style="display:none;">
+                        <div style="font-weight:600; color:var(--navy); margin-bottom:12px; font-size:.9rem;">⚡ Güç Bilgileri</div>
+                        <div class="grid">
+                            <div class="form-group">
+                                <label>Mevcut Toplam Güç (kW)</label>
+                                <input type="number" id="net-p-mevcut" placeholder="Örn: 50" step="0.1">
+                            </div>
+                            <div class="form-group" style="background:#fff7ed; border:2px solid #f97316; border-radius:10px; padding:12px;">
+                                <label style="color:#ea580c; font-weight:700;">➕ Yeni Eklenecek Güç (kW)</label>
+                                <input type="number" id="net-p-yeni" placeholder="Örn: 20" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid">
+                        <div class="form-group">
+                            <label>Hat Tipi</label>
+                            <select id="net-hat-tipi">
+                                <option value="yeralti">Yer Altı (NYY)</option>
+                                <option value="havai">Havai Hat</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>İletken Malzemesi</label>
+                            <select id="net-material">
+                                <option value="copper">Bakır (Cu)</option>
+                                <option value="aluminum">Alüminyum (Al)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <button class="btn btn-primary" onclick="calculateNetwork()">🏗️ Şebekeyi Hesapla</button>
+                    </div>
+                </div>
+
+                <div id="net-result-container" style="display:none">
+                    <div class="card" style="border:2px solid var(--or);">
+                        <div class="card-title">📊 Şebeke Hesabı Sonuçları</div>
+                        <div id="net-result-ok">
+                            <div class="grid" style="margin-bottom:16px;">
+                                <div class="res-item highlight">
+                                    <div class="res-lbl">Önerilen Kesit</div>
+                                    <div id="net-res-rec-cable" class="res-val">-</div>
+                                </div>
+                                <div class="res-item">
+                                    <div class="res-lbl">Toplam Güç</div>
+                                    <div id="net-res-p-kurulu" class="res-val">- kW</div>
+                                </div>
+                                <div class="res-item">
+                                    <div class="res-lbl">Toplam Akım</div>
+                                    <div id="net-res-current" class="res-val">- A</div>
+                                </div>
+                                <div class="res-item">
+                                    <div class="res-lbl">Yeni Akım (Bağl.Hattı)</div>
+                                    <div id="net-res-current-yeni" class="res-val">- A</div>
+                                </div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                                <div style="padding:12px; background:#f1f5f9; border-radius:10px;">
+                                    <div style="font-size:.75rem; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">TR/SDK KABLO</div>
+                                    <div style="margin-top:8px; font-size:.9rem;">
+                                        <div>Kesit: <strong id="net-res-tp-section">-</strong></div>
+                                        <div>Kapasite: <strong id="net-res-tp-cap">-</strong></div>
+                                        <div>Durum: <strong id="net-res-tp-status">-</strong></div>
+                                        <div>ΔU: <strong id="net-res-tp-vd">-</strong></div>
+                                    </div>
+                                </div>
+                                <div style="padding:12px; background:#f1f5f9; border-radius:10px;">
+                                    <div style="font-size:.75rem; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">BAĞLANTI HATTI</div>
+                                    <div style="margin-top:8px; font-size:.9rem;">
+                                        <div>Kesit: <strong id="net-res-tsdk-section">-</strong></div>
+                                        <div>Kapasite: <strong id="net-res-tsdk-cap">-</strong></div>
+                                        <div>Durum: <strong id="net-res-tsdk-status">-</strong></div>
+                                        <div>ΔU: <strong id="net-res-tsdk-vd">-</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="padding:16px; background:#fff7ed; border:2px solid var(--or); border-radius:12px; text-align:center; margin-bottom:16px;">
+                                <div style="font-size:.8rem; color:#64748b;">TOPLAM GERİLİM DÜŞÜMÜ</div>
+                                <div style="font-size:2rem; font-weight:700;" id="net-res-vd-total">-</div>
+                                <div style="font-size:1rem; font-weight:600;" id="net-res-vd-status">-</div>
+                            </div>
+
+                            <div id="net-res-suggestions" style="display:none; margin-top:12px; padding:16px; background:#f0fdf4; border:2px solid var(--grn); border-radius:12px;">
+                                <div class="card-title" style="color:#166534; margin-bottom:12px;">✅ Önerilen Kablo Düzenlemesi</div>
+                                <div id="net-res-suggestion-text" style="font-size:.95rem;"></div>
+                            </div>
+                        </div>
+                        <div id="net-error-msg" style="display:none; background:#fee2e2; border:1px solid #fca5a5; border-radius:10px; padding:16px; color:#991b1b; font-weight:500; font-size:.9rem;"></div>
+                    </div>
+
+                    <div class="card" id="net-details-card" style="display:none;">
+                        <div class="card-title">📝 Adım Adım Hesaplama Detayı</div>
+                        <div id="net-details-content" style="font-size:.9rem; line-height:1.8;"></div>
+                    </div>
+                </div>
+
+                <div class="card" style="text-align:center; padding:20px;">
+                    <div class="card-title">🏗️ Dağıtım Şebekesi Şeması</div>
+                    <div id="net-svg-container">
+                        <svg viewBox="0 0 800 260" style="max-width:100%; height:auto;" id="net-svg">
+                            <defs>
+                                <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f97316"/></marker>
+                                <linearGradient id="g1" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#1a2744"/><stop offset="100%" stop-color="#2d4a7a"/>
+                                </linearGradient>
+                                <filter id="shadow">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+                                </filter>
+                            </defs>
+                            <rect x="20" y="50" width="100" height="60" rx="10" fill="url(#g1)" stroke="#f97316" stroke-width="2.5" filter="url(#shadow)"/>
+                            <text x="70" y="73" text-anchor="middle" fill="white" font-size="13" font-weight="700">TRAFO</text>
+                            <text x="70" y="93" text-anchor="middle" fill="#94a3b8" font-size="9">TM</text>
+
+                            <line x1="120" y1="80" x2="260" y2="80" stroke="#f97316" stroke-width="3" marker-end="url(#arrow)"/>
+                            <rect x="155" y="52" width="70" height="18" rx="4" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+                            <text id="net-svg-tp-label" x="190" y="64" text-anchor="middle" fill="#475569" font-size="8" font-weight="600">TR/SDK KABLO</text>
+                            <text id="net-svg-tp-data" x="190" y="98" text-anchor="middle" fill="#64748b" font-size="8">- m / - mm²</text>
+
+                            <rect x="260" y="40" width="120" height="80" rx="10" fill="url(#g1)" stroke="#3b82f6" stroke-width="2.5" filter="url(#shadow)"/>
+                            <text x="320" y="65" text-anchor="middle" fill="white" font-size="12" font-weight="700">DAĞITIM</text>
+                            <text x="320" y="80" text-anchor="middle" fill="white" font-size="12" font-weight="700">KUTUSU</text>
+                            <text x="320" y="100" text-anchor="middle" fill="#94a3b8" font-size="9">SDK / BOX</text>
+
+                            <line x1="380" y1="80" x2="530" y2="80" stroke="#f97316" stroke-width="3" marker-end="url(#arrow)"/>
+                            <rect x="420" y="52" width="70" height="18" rx="4" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+                            <text id="net-svg-tsdk-label" x="455" y="64" text-anchor="middle" fill="#475569" font-size="8" font-weight="600">BAĞLANTI HATTI</text>
+                            <text id="net-svg-tsdk-data" x="455" y="98" text-anchor="middle" fill="#64748b" font-size="8">- m / - mm²</text>
+
+                            <rect x="530" y="40" width="120" height="80" rx="10" fill="url(#g1)" stroke="#eab308" stroke-width="2.5" filter="url(#shadow)"/>
+                            <text x="590" y="65" text-anchor="middle" fill="white" font-size="12" font-weight="700">BİNA</text>
+                            <text x="590" y="80" text-anchor="middle" fill="white" font-size="12" font-weight="700">/ KOFRE</text>
+                            <text x="590" y="100" text-anchor="middle" fill="#94a3b8" font-size="9">Ana Pano</text>
+
+                            <line x1="320" y1="120" x2="320" y2="210" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,4"/>
+                            <rect x="335" y="135" width="130" height="60" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+                            <text id="net-svg-info1" x="400" y="153" text-anchor="middle" fill="#334155" font-size="9" font-weight="500">Giriş yapılmadı</text>
+                            <text id="net-svg-info2" x="400" y="170" text-anchor="middle" fill="#334155" font-size="9" font-weight="500">-</text>
+
+                            <text id="net-svg-vd-tp" x="190" y="125" text-anchor="middle" fill="var(--or)" font-size="10" font-weight="700" display="none">ΔU%</text>
+                            <text id="net-svg-vd-tsdk" x="455" y="125" text-anchor="middle" fill="var(--or)" font-size="10" font-weight="700" display="none">ΔU%</text>
+                            <text id="net-svg-vd-total" x="320" y="245" text-anchor="middle" fill="var(--or)" font-size="12" font-weight="700" display="none">Toplam ΔU%</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HISTORY PAGE -->
+            <div id="page-history" style="display:none">
+                <div class="card">
+                    <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>📜 Hesaplama Geçmişi</span>
+                        <button class="btn btn-primary"
+                            style="padding: 6px 12px; font-size: 0.8rem; background: var(--red); gap: 4px;"
+                            onclick="clearHistory()">🗑️ Temizle</button>
+                    </div>
+                    <table id="history-table">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Güç (kW)</th>
+                                <th>Mesafe (m)</th>
+                                <th>Kesit</th>
+                                <th>%e</th>
+                                <th>Akım</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Veriler buraya gelecek -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SETTINGS PAGE -->
+            <div id="page-settings" style="display:none">
+                <div class="card">
+                    <div class="card-title">⚙️ Hesaplama Ayarları</div>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label>Mesken Birim Güç (kW)</label>
+                            <input type="number" id="conf-mesken" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Ticaret Birim Güç (kW)</label>
+                            <input type="number" id="conf-ticaret" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>100+ Eşik Sınırı</label>
+                            <input type="number" id="conf-threshold">
+                        </div>
+                        <div class="form-group">
+                            <label>Gerilim Düşümü Sınırı (%)</label>
+                            <input type="number" id="conf-limit" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Bakır İletkenlik (γₛᵢ, m/Ω·mm²)</label>
+                            <input type="number" id="conf-conductivity-cu" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Alüminyum İletkenlik (γₐₗ, m/Ω·mm²)</label>
+                            <input type="number" id="conf-conductivity-al" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Faz Gerilimi (V)</label>
+                            <input type="number" id="conf-voltage" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Güç Faktörü (cosφ)</label>
+                            <input type="number" id="conf-cosphi" step="0.01" min="0" max="1">
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button class="btn btn-primary" onclick="saveSettings()">💾 Ayarları Kaydet</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('tr-TR', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        function showPage(page) {
+            ['calc', 'network', 'history', 'settings'].forEach(p => {
+                const el = document.getElementById('page-' + p);
+                if (el) el.style.display = p === page ? 'block' : 'none';
+            });
+
+            const titles = {
+                'calc': 'Trafodan Enerji İzni',
+                'network': 'Dağıtım Şebekesi Hesabı',
+                'history': 'Hesaplama Geçmişi',
+                'settings': 'Ayarlar'
+            };
+            document.getElementById('page-title').innerText = titles[page] || 'Kesit Tayini';
+
+            document.querySelectorAll('#sidebar nav a').forEach(a => {
+                a.classList.remove('active');
+                const text = a.innerText.toLowerCase();
+                if ((page === 'calc' && text.includes('trafodan')) ||
+                    (page === 'network' && text.includes('dağıtım')) ||
+                    (page === 'history' && text.includes('geçmiş')) ||
+                    (page === 'settings' && text.includes('ayarlar'))) {
+                    a.classList.add('active');
+                }
+            });
+        }
+
+        async function calculate() {
+            const data = {
+                talep_gucu: document.getElementById('talep_gucu').value,
+                mesafe: document.getElementById('mesafe').value,
+                hat_tipi: document.getElementById('hat_tipi').value
+            };
+
+            if (!data.talep_gucu) {
+                alert("Lütfen Talep Gücünü girin!");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    document.getElementById('result-container').style.display = 'block';
+                    document.getElementById('result-success').style.display = 'grid';
+                    document.getElementById('error-msg').style.display = 'none';
+                    document.getElementById('res-cable').innerText = result.selected_cable;
+                    document.getElementById('res-e').innerText = '%' + result.voltage_drop;
+                    document.getElementById('res-i').innerText = result.current + ' A';
+                    document.getElementById('res-mesafe').innerText = result.mesafe + ' m';
+
+                    loadHistory();
+                } else {
+                    document.getElementById('result-container').style.display = 'block';
+                    document.getElementById('result-success').style.display = 'none';
+                    document.getElementById('error-msg').innerHTML = '⚠️ ' + result.error;
+                    document.getElementById('error-msg').style.display = 'block';
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('result-container').style.display = 'block';
+                document.getElementById('result-success').style.display = 'none';
+                document.getElementById('error-msg').innerHTML = '⚠️ Sunucu ile bağlantı kurulamadı.';
+                document.getElementById('error-msg').style.display = 'block';
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const history = await res.json();
+
+                const tbody = document.querySelector('#history-table tbody');
+                tbody.innerHTML = '';
+                history.forEach(h => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${h.date}</td>
+                        <td>${h.p} kW</td>
+                        <td>${h.l} m</td>
+                        <td><span class="badge badge-success">${h.cable}</span></td>
+                        <td>%${h.e}</td>
+                        <td>${h.i} A</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Geçmiş yüklenemedi", err);
+            }
+        }
+
+        async function clearHistory() {
+            if (!confirm("Tüm geçmişi silmek istediğinize emin misiniz?")) return;
+            try {
+                await fetch('/api/history', { method: 'DELETE' });
+                loadHistory();
+            } catch (err) {
+                console.error("Geçmiş silinemedi", err);
+            }
+        }
+
+        function toggleNetInputMode() {
+            const mode = document.querySelector('input[name="net-input-mode"]:checked').value;
+            document.getElementById('net-abone-fields').style.display = mode === 'abone' ? 'block' : 'none';
+            document.getElementById('net-guc-fields').style.display = mode === 'guc' ? 'block' : 'none';
+        }
+
+        const CABLE_TABLE = [
+            {section: "4x6", section_val: 6, capacity: 56},
+            {section: "4x10", section_val: 10, capacity: 75},
+            {section: "4x16", section_val: 16, capacity: 98},
+            {section: "3x25/16", section_val: 25, capacity: 128},
+            {section: "3x35/16", section_val: 35, capacity: 157},
+            {section: "3x50/25", section_val: 50, capacity: 185},
+            {section: "3x70/35", section_val: 70, capacity: 228},
+            {section: "3x95/50", section_val: 95, capacity: 275},
+            {section: "3x120/70", section_val: 120, capacity: 313},
+            {section: "3x150/70", section_val: 150, capacity: 353},
+            {section: "3x185/95", section_val: 185, capacity: 399},
+            {section: "3x240/120", section_val: 240, capacity: 464}
+        ];
+
+        function autoCalcConnectionCable() {
+            const mode = document.querySelector('input[name="net-input-mode"]:checked').value;
+            let yeniGuc = 0;
+            if (mode === 'abone') {
+                const yeniMesken = parseInt(document.getElementById('net-n-mesken-yeni').value) || 0;
+                const yeniTicari = parseInt(document.getElementById('net-n-ticaret-yeni').value) || 0;
+                const pMesken = 2.0;
+                const pTicari = 5.0;
+                yeniGuc = yeniMesken * pMesken + yeniTicari * pTicari;
+            } else {
+                yeniGuc = parseFloat(document.getElementById('net-p-yeni').value) || 0;
+            }
+
+            const mesafe = parseFloat(document.getElementById('net-l-tsdk').value) || 0;
+            if (yeniGuc <= 0) return;
+
+            const V = 380;
+            const cosPhi = 0.8;
+            const gamma = 56;
+            const limit = 5.0;
+            const hatTipi = document.getElementById('net-hat-tipi').value;
+            const derating = hatTipi === 'havai' ? 0.85 : 1.0;
+
+            const current = (yeniGuc * 1000) / (Math.sqrt(3) * V * cosPhi);
+
+            let selectedVal = 0;
+            for (let n = 1; n <= 4; n++) {
+                for (const cable of CABLE_TABLE) {
+                    const totalCap = cable.capacity * n * derating;
+                    const effS = cable.section_val * n;
+                    let eVal = 0;
+                    if (mesafe > 0 && effS > 0) {
+                        eVal = (100 * mesafe * (yeniGuc * 1000)) / (gamma * effS * V * V);
+                    }
+                    if (current <= totalCap && eVal <= limit) {
+                        selectedVal = cable.section_val;
+                        break;
+                    }
+                }
+                if (selectedVal > 0) break;
+            }
+
+            if (selectedVal > 0) {
+                document.getElementById('net-s-tsdk').value = selectedVal;
+            }
+        }
+
+        document.addEventListener('input', function(e) {
+            const triggerIds = ['net-n-mesken-yeni', 'net-n-ticaret-yeni', 'net-p-yeni', 'net-l-tsdk', 'net-hat-tipi', 'net-material'];
+            if (e.target && triggerIds.includes(e.target.id)) {
+                autoCalcConnectionCable();
+            }
+        });
+
+        function updateNetSvg(r, inputs) {
+            const tpData = document.getElementById('net-svg-tp-data');
+            const tsdkData = document.getElementById('net-svg-tsdk-data');
+            const info1 = document.getElementById('net-svg-info1');
+            const info2 = document.getElementById('net-svg-info2');
+
+            tpData.textContent = (inputs.l_tp || '0') + 'm / ' + (inputs.s_tp || '?') + ' mm²' + (inputs.n_tp > 1 ? ' ×' + inputs.n_tp : '');
+            tsdkData.textContent = (inputs.l_tsdk || '0') + 'm / ' + (inputs.s_tsdk || '?') + ' mm²' + (inputs.n_tsdk > 1 ? ' ×' + inputs.n_tsdk : '');
+
+            if (inputs.input_mode === 'guc') {
+                info1.textContent = 'Mevcut Güç: ' + r.p_mevcut + ' kW';
+                info2.textContent = 'Yeni Güç: +' + r.p_yeni + ' kW';
+            } else {
+                info1.textContent = 'Mevcut: ' + (inputs.n_mesken_mevcut || 0) + ' mesken + ' + (inputs.n_ticaret_mevcut || 0) + ' ticari';
+                info2.textContent = 'Yeni: +' + (inputs.n_mesken_yeni || 0) + ' mesken + ' + (inputs.n_ticaret_yeni || 0) + ' ticari';
+            }
+
+            if (r) {
+                const vdTp = document.getElementById('net-svg-vd-tp');
+                const vdTsdk = document.getElementById('net-svg-vd-tsdk');
+                const vdTotal = document.getElementById('net-svg-vd-total');
+                const color = r.vd_ok ? '#22c55e' : '#ef4444';
+                vdTp.textContent = 'ΔU%: ' + r.tp_vd + '%';
+                vdTp.style.fill = color;
+                vdTp.style.display = 'block';
+                vdTsdk.textContent = 'ΔU%: ' + r.tsdk_vd + '%';
+                vdTsdk.style.fill = color;
+                vdTsdk.style.display = 'block';
+                vdTotal.textContent = 'Toplam ΔU%: ' + r.vd_total + '% (' + (r.vd_ok ? '✅' : '❌') + ')';
+                vdTotal.style.fill = color;
+                vdTotal.style.display = 'block';
+
+                // Trafo -> SDK -> Bina renkleri
+                const colors = document.querySelectorAll('#net-svg rect');
+                if (colors.length >= 3) {
+                    colors[0].setAttribute('stroke', r.vd_ok ? '#22c55e' : '#ef4444');
+                    colors[2].setAttribute('stroke', r.vd_ok ? '#22c55e' : '#ef4444');
+                }
+            }
+        }
+
+        async function calculateNetwork() {
+            const mode = document.querySelector('input[name="net-input-mode"]:checked').value;
+            const data = {
+                l_tp: document.getElementById('net-l-tp').value,
+                l_tsdk: document.getElementById('net-l-tsdk').value,
+                s_tp: document.getElementById('net-s-tp').value,
+                s_tsdk: document.getElementById('net-s-tsdk').value,
+                n_tp: document.getElementById('net-n-tp').value,
+                n_tsdk: document.getElementById('net-n-tsdk').value,
+                hat_tipi: document.getElementById('net-hat-tipi').value,
+                material: document.getElementById('net-material').value,
+                input_mode: mode
+            };
+
+            if (mode === 'abone') {
+                data.n_mesken_mevcut = document.getElementById('net-n-mesken-mevcut').value;
+                data.n_ticaret_mevcut = document.getElementById('net-n-ticaret-mevcut').value;
+                data.n_mesken_yeni = document.getElementById('net-n-mesken-yeni').value;
+                data.n_ticaret_yeni = document.getElementById('net-n-ticaret-yeni').value;
+            } else {
+                data.p_mevcut = document.getElementById('net-p-mevcut').value;
+                data.p_yeni = document.getElementById('net-p-yeni').value;
+            }
+
+            if (!data.l_tp && !data.l_tsdk) {
+                alert("Lütfen en az bir mesafe değeri girin!");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/network_calc', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+                document.getElementById('net-result-container').style.display = 'block';
+
+                if (res.ok) {
+                    document.getElementById('net-result-ok').style.display = 'block';
+                    document.getElementById('net-error-msg').style.display = 'none';
+                    const r = result.results;
+
+                    document.getElementById('net-res-rec-cable').innerText = r.recommended_cable || '-';
+                    document.getElementById('net-res-p-kurulu').innerText = r.p_kurulu + ' kW';
+                    document.getElementById('net-res-current').innerText = r.current + ' A';
+                    document.getElementById('net-res-current-yeni').innerText = r.current_yeni + ' A';
+
+                    document.getElementById('net-res-tp-section').innerText = (r.tp_cable_exists
+                        ? (result.inputs.n_tp > 1 ? result.inputs.n_tp + 'x ' : '') + result.inputs.s_tp + ' mm²'
+                        : 'Yok');
+                    document.getElementById('net-res-tp-cap').innerText = r.tp_capacity_available + ' A';
+                    document.getElementById('net-res-tp-status').innerHTML = r.tp_capacity_ok ?
+                        '<span style="color:var(--grn)">✅ Yeterli</span>' :
+                        '<span style="color:var(--red)">❌ Yetersiz</span>';
+                    document.getElementById('net-res-tp-vd').innerText = '%' + r.tp_vd;
+
+                    document.getElementById('net-res-tsdk-section').innerText = (r.tsdk_cable_exists
+                        ? (result.inputs.n_tsdk > 1 ? result.inputs.n_tsdk + 'x ' : '') + result.inputs.s_tsdk + ' mm²'
+                        : 'Yok');
+                    document.getElementById('net-res-tsdk-cap').innerText = r.tsdk_capacity_available + ' A';
+                    document.getElementById('net-res-tsdk-status').innerHTML = r.tsdk_capacity_ok ?
+                        '<span style="color:var(--grn)">✅ Yeterli</span>' :
+                        '<span style="color:var(--red)">❌ Yetersiz</span>';
+                    document.getElementById('net-res-tsdk-vd').innerText = '%' + r.tsdk_vd;
+
+                    const vdTotalEl = document.getElementById('net-res-vd-total');
+                    vdTotalEl.innerText = '%' + r.vd_total;
+                    vdTotalEl.style.color = r.vd_ok ? 'var(--grn)' : 'var(--red)';
+                    document.getElementById('net-res-vd-status').innerHTML = r.vd_ok ?
+                        '<span style="color:var(--grn)">✅ Sınır içinde (Sınır: %' + r.vd_limit + ')</span>' :
+                        '<span style="color:var(--red)">❌ Sınır AŞILDI! (Sınır: %' + r.vd_limit + ')</span>';
+
+                    // Dynamic SVG update
+                    updateNetSvg(r, result.inputs);
+
+                    // Suggestions (only for Bağlantı Hattı - TR/SDK değiştirilemez)
+                    const suggEl = document.getElementById('net-res-suggestions');
+                    const suggText = document.getElementById('net-res-suggestion-text');
+                    if (r.tsdk_suggestions && r.tsdk_suggestions.length > 0 && (!r.tsdk_capacity_ok || !r.vd_ok)) {
+                        suggEl.style.display = 'block';
+                        const tsdk = r.tsdk_suggestions[0];
+                        let html = '<strong>Bağlantı Hattı için önerilen:</strong> ';
+                        html += tsdk.quantity + ' x ' + tsdk.section + ' (toplam ' + tsdk.total_section + ' mm², ' + tsdk.capacity + ' A, ΔU %' + tsdk.vd + ')';
+                        suggText.innerHTML = html;
+                    } else {
+                        suggEl.style.display = 'block';
+                        suggText.innerHTML = '<span style="color:var(--grn)">✅ Mevcut kablolar yeterli. Ek kablo gerekmez.</span>';
+                    }
+
+                    // Details
+                    const d = result.details;
+                    document.getElementById('net-details-card').style.display = 'block';
+
+                    let adim1Html = '';
+                    if (mode === 'abone') {
+                        adim1Html = `
+                            Mesken kurulu güç: ${d.adim1_gucler.mesken_kurulu_toplam} kW<br>
+                            Ticarethane kurulu güç: ${d.adim1_gucler.ticaret_kurulu_toplam} kW<br>
+                            Toplam kurulu güç: <strong>${d.adim1_gucler.kurulu_toplam} kW</strong><br>
+                            Toplam abone sayısı: ${d.adim1_gucler.abone_sayisi_toplam}<br>
+                            Mevcut güç: ${d.adim1_gucler.mevcut_guc} kW<br>
+                            Yeni güç: ${d.adim1_gucler.yeni_guc} kW<br>
+                        `;
+                    } else {
+                        adim1Html = `
+                            Mevcut güç: ${d.adim1_gucler.mevcut_guc} kW<br>
+                            Yeni güç: ${d.adim1_gucler.yeni_guc} kW<br>
+                            Toplam güç: <strong>${d.adim1_gucler.kurulu_toplam} kW</strong><br>
+                        `;
+                    }
+
+                    document.getElementById('net-details-content').innerHTML = `
+                        <strong>Adım 1 — Güç Hesapları</strong><br>
+                        ${adim1Html}<br>
+
+                        <strong>Adım 2 — Akım Hesabı</strong><br>
+                        Formül: I = P / (√3 × V × cosφ)<br>
+                        Toplam Akım: I = ${d.adim1_gucler.kurulu_toplam}×1000 / (1.732 × ${d.adim2_akim.gerilim} × ${d.adim2_akim.cos_phi}) = <strong>${d.adim2_akim.toplam_akim} A</strong><br>
+                        Yeni Akım (Bağlantı Hattı): <strong>${d.adim2_akim.yeni_akim} A</strong><br><br>
+
+                        <strong>Adım 3 — TR/SDK Kablo Kontrolü</strong><br>
+                        Mevcut kesit: ${d.adim3_tp_kablo.mevcut_kesit || 'Yok'}<br>
+                        Akım taşıma kapasitesi: ${d.adim3_tp_kablo.kapasite} A<br>
+                        ${d.adim3_tp_kablo.yeterli_mi ? '✅ Yeterli' : '❌ Yetersiz'}<br>
+                        Gerilim düşümü (TR/SDK): %${d.adim3_tp_kablo.gerilim_dusumu_yuzde}<br><br>
+
+                        <strong>Adım 4 — Bağlantı Hattı Kablo Kontrolü</strong><br>
+                        Mevcut kesit: ${d.adim4_tsdk_kablo.mevcut_kesit || 'Yok'}<br>
+                        Akım taşıma kapasitesi: ${d.adim4_tsdk_kablo.kapasite} A<br>
+                        ${d.adim4_tsdk_kablo.yeterli_mi ? '✅ Yeterli' : '❌ Yetersiz'}<br>
+                        Gerilim düşümü (Bağlantı Hattı): %${d.adim4_tsdk_kablo.gerilim_dusumu_yuzde}<br><br>
+
+                        <strong>Adım 5 — Toplam Gerilim Düşümü</strong><br>
+                        ΔU%<sub>TR/SDK</sub> = %${d.adim5_toplam_gd.tp_vd}<br>
+                        ΔU%<sub>Bağlantı</sub> = %${d.adim5_toplam_gd.tsdk_vd}<br>
+                        ΔU%<sub>TOPLAM</sub> = <strong>%${d.adim5_toplam_gd.toplam_vd}</strong><br>
+                        Sınır: %${d.adim5_toplam_gd.sinir}<br>
+                        ${d.adim5_toplam_gd.yeterli_mi ? '✅ Sınır içinde' : '❌ Sınır AŞILDI!'}
+                    `;
+                } else {
+                    document.getElementById('net-result-ok').style.display = 'none';
+                    document.getElementById('net-details-card').style.display = 'none';
+                    document.getElementById('net-error-msg').style.display = 'block';
+                    document.getElementById('net-error-msg').innerHTML = '⚠️ ' + result.error;
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('net-result-container').style.display = 'block';
+                document.getElementById('net-result-ok').style.display = 'none';
+                document.getElementById('net-error-msg').style.display = 'block';
+                document.getElementById('net-error-msg').innerHTML = '⚠️ Sunucu ile bağlantı kurulamadı.';
+            }
+        }
+
+        async function loadConfig() {
+            try {
+                const res = await fetch('/api/config');
+                const conf = await res.json();
+                document.getElementById('conf-mesken').value = conf.MESKEN_UNIT_KW;
+                document.getElementById('conf-ticaret').value = conf.TICARET_UNIT_KW;
+                document.getElementById('conf-threshold').value = conf.THRESHOLD_LIMIT;
+                document.getElementById('conf-limit').value = conf.VOLTAGE_DROP_LIMIT;
+                document.getElementById('conf-conductivity-cu').value = conf.CONDUCTIVITY_COPPER;
+                document.getElementById('conf-conductivity-al').value = conf.CONDUCTIVITY_ALUMINUM;
+                document.getElementById('conf-voltage').value = conf.VOLTAGE;
+                document.getElementById('conf-cosphi').value = conf.COS_PHI;
+            } catch (err) { }
+        }
+
+        async function saveSettings() {
+            const data = {
+                MESKEN_UNIT_KW: Number(document.getElementById('conf-mesken').value),
+                TICARET_UNIT_KW: Number(document.getElementById('conf-ticaret').value),
+                THRESHOLD_LIMIT: Number(document.getElementById('conf-threshold').value),
+                VOLTAGE_DROP_LIMIT: Number(document.getElementById('conf-limit').value),
+                CONDUCTIVITY_COPPER: Number(document.getElementById('conf-conductivity-cu').value),
+                CONDUCTIVITY_ALUMINUM: Number(document.getElementById('conf-conductivity-al').value),
+                VOLTAGE: Number(document.getElementById('conf-voltage').value),
+                COS_PHI: Number(document.getElementById('conf-cosphi').value)
+            };
+
+            try {
+                await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                alert("Ayarlar kaydedildi ve sunucuya gönderildi.");
+            } catch (err) {
+                alert("Ayarlar kaydedilemedi.");
+            }
+        }
+
+        window.onload = () => {
+            loadHistory();
+            loadConfig();
+        };
+    </script>
+</body>
+
+</html>
