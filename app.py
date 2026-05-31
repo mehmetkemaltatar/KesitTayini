@@ -433,12 +433,13 @@ def clear_history_route():
     return jsonify({"success": True})
 
 def start_flask(data_dir=None):
-    """Android (Chaquopy) tarafından çağrılır."""
+    """Android (Chaquopy) tarafından çağrılır. Hemen döner, Flask arka planda çalışır."""
     if data_dir:
         db.USE_MEMORY = True
         app.template_folder = os.path.join(os.path.dirname(__file__), 'templates')
     db.init_db()
-    app.run(host="127.0.0.1", port=5001, debug=False, use_reloader=False)
+    t = threading.Thread(target=lambda: app.run(host="127.0.0.1", port=5001, debug=False, use_reloader=False), daemon=True)
+    t.start()
 
 if __name__ == "__main__":
     db.init_db()
