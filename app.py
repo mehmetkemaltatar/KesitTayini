@@ -432,6 +432,51 @@ def clear_history_route():
     conn.commit()
     return jsonify({"success": True})
 
+@app.route("/api/trafo_capacity", methods=["POST"])
+def trafo_capacity():
+    data = request.get_json()
+    config = db.get_config()
+
+    trafo_kapasitesi_kva = safe_float(data.get("trafo_kapasitesi_kva"))
+    abone_sayisi = safe_int(data.get("abone_sayisi"))
+    birim_guc = safe_float(data.get("birim_guc"), 1.5)
+    cos_phi = safe_float(data.get("cos_phi"), config.get("COS_PHI", 0.8))
+
+    if trafo_kapasitesi_kva <= 0:
+        return jsonify({"error": "Trafo kapasitesi sıfırdan büyük olmalıdır."}), 400
+    if abone_sayisi <= 0:
+        return jsonify({"error": "Abone/tesisat sayısı sıfırdan büyük olmalıdır."}), 400
+    if birim_guc <= 0:
+        return jsonify({"error": "Tesisat başına güç sıfırdan büyük olmalıdır."}), 400
+    if cos_phi <= 0 or cos_phi > 1:
+        return jsonify({"error": "Güç faktörü 0-1 arasında olmalıdır."}), 400
+
+    p_kurulu = abone_sayisi * birim_guc
+    s_toplam = p_kurulu / cos_phi
+    trafo_yuku_yuzde = (s_toplam / trafo_kapasitesi_kva) * 100
+    yeterli_mi = trafo_yuku_yuzde <= 100
+    asilma_miktari = max(0, round(trafo_yuku_yuzde - 100, 2))
+
+    db.add_history_entry(
+        p=round(p_kurulu, 2),
+        l=0,
+        cable=f"Trafo: {round(trafo_kapasitesi_kva, 0)} kVA",
+        e=round(trafo_yuku_yuzde, 2),
+        i=round(s_toplam, 2)
+    )
+
+    return jsonify({
+        "p_kurulu": round(p_kurulu, 2),
+        "s_toplam": round(s_toplam, 2),
+        "trafo_yuku_yuzde": round(trafo_yuku_yuzde, 2),
+        "yeterli_mi": yeterli_mi,
+        "asilma_miktari": asilma_miktari,
+        "trafo_kapasitesi_kva": round(trafo_kapasitesi_kva, 1),
+        "abone_sayisi": abone_sayisi,
+        "birim_guc": birim_guc,
+        "cos_phi": cos_phi
+    })
+
 def start_flask(data_dir=None):
     """Android (Chaquopy) tarafından çağrılır. Hemen döner, Flask arka planda çalışır."""
     if data_dir:

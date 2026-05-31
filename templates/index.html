@@ -402,6 +402,7 @@
         <nav>
             <a href="#" class="active" onclick="showPage('calc'); closeSidebar()">📐 Trafodan Enerji İzni</a>
             <a href="#" onclick="showPage('network'); closeSidebar()">🏗️ Dağıtım Şebekesi</a>
+            <a href="#" onclick="showPage('trafo'); closeSidebar()">⚡ Trafo Kapasite</a>
             <a href="#" onclick="showPage('history'); closeSidebar()">📜 Geçmiş</a>
             <a href="#" onclick="showPage('settings'); closeSidebar()">⚙️ Ayarlar</a>
         </nav>
@@ -706,6 +707,64 @@
                 </div>
             </div>
 
+            <!-- TRAFO CAPACITY PAGE -->
+            <div id="page-trafo" style="display:none">
+                <div class="card">
+                    <div class="card-title">⚡ Trafo Kapasite Hesabı</div>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label>Trafo Kapasitesi (kVA)</label>
+                            <input type="number" id="trafo-kapasite" placeholder="Örn: 630" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Abone / Tesisat Sayısı</label>
+                            <input type="number" id="trafo-abone" placeholder="Örn: 100" step="1" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Tesisat Başına Güç (kW)</label>
+                            <input type="number" id="trafo-birim-guc" value="1.5" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Güç Faktörü (cosφ)</label>
+                            <input type="number" id="trafo-cosphi" value="0.8" step="0.01" min="0" max="1">
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <button class="btn btn-primary" onclick="calculateTrafoCapacity()">⚡ Hesapla</button>
+                    </div>
+                </div>
+
+                <div id="trafo-result-container" class="card" style="display:none">
+                    <div class="card-title">📊 Trafo Kapasite Sonuçları</div>
+                    <div id="trafo-result-ok">
+                        <div class="grid" style="margin-bottom:16px;">
+                            <div class="res-item highlight">
+                                <div class="res-lbl">Toplam Kurulu Güç</div>
+                                <div id="trafo-res-p-kurulu" class="res-val">- kW</div>
+                            </div>
+                            <div class="res-item">
+                                <div class="res-lbl">Toplam Görünür Güç</div>
+                                <div id="trafo-res-s-toplam" class="res-val">- kVA</div>
+                            </div>
+                            <div class="res-item">
+                                <div class="res-lbl">Trafo Yükü</div>
+                                <div id="trafo-res-yuzde" class="res-val">- %</div>
+                            </div>
+                            <div class="res-item">
+                                <div class="res-lbl">Trafo Kapasitesi</div>
+                                <div id="trafo-res-kapasite" class="res-val">- kVA</div>
+                            </div>
+                        </div>
+                        <div id="trafo-res-status"
+                            style="padding:16px; border-radius:12px; text-align:center; font-weight:700; font-size:1.1rem;">
+                        </div>
+                    </div>
+                    <div id="trafo-error-msg"
+                        style="background:#fee2e2; border:1px solid #fca5a5; border-radius:10px; padding:16px; margin-top:16px; color:#991b1b; font-weight:500; font-size:.9rem; display:none">
+                    </div>
+                </div>
+            </div>
+
             <!-- HISTORY PAGE -->
             <div id="page-history" style="display:none">
                 <div class="card">
@@ -791,7 +850,7 @@
         }
 
         function showPage(page) {
-            ['calc', 'network', 'history', 'settings'].forEach(p => {
+            ['calc', 'network', 'trafo', 'history', 'settings'].forEach(p => {
                 const el = document.getElementById('page-' + p);
                 if (el) el.style.display = p === page ? 'block' : 'none';
             });
@@ -799,6 +858,7 @@
             const titles = {
                 'calc': 'Trafodan Enerji İzni',
                 'network': 'Dağıtım Şebekesi Hesabı',
+                'trafo': 'Trafo Kapasite Hesabı',
                 'history': 'Hesaplama Geçmişi',
                 'settings': 'Ayarlar'
             };
@@ -809,11 +869,14 @@
                 const text = a.innerText.toLowerCase();
                 if ((page === 'calc' && text.includes('trafodan')) ||
                     (page === 'network' && text.includes('dağıtım')) ||
+                    (page === 'trafo' && text.includes('trafo kapasite')) ||
                     (page === 'history' && text.includes('geçmiş')) ||
                     (page === 'settings' && text.includes('ayarlar'))) {
                     a.classList.add('active');
                 }
             });
+
+            if (window.innerWidth <= 768) closeSidebar();
         }
 
         async function calculate() {
@@ -1165,6 +1228,70 @@
                 document.getElementById('net-result-ok').style.display = 'none';
                 document.getElementById('net-error-msg').style.display = 'block';
                 document.getElementById('net-error-msg').innerHTML = '⚠️ Sunucu ile bağlantı kurulamadı.';
+            }
+        }
+
+        async function calculateTrafoCapacity() {
+            const data = {
+                trafo_kapasitesi_kva: document.getElementById('trafo-kapasite').value,
+                abone_sayisi: document.getElementById('trafo-abone').value,
+                birim_guc: document.getElementById('trafo-birim-guc').value,
+                cos_phi: document.getElementById('trafo-cosphi').value
+            };
+
+            if (!data.trafo_kapasitesi_kva || parseFloat(data.trafo_kapasitesi_kva) <= 0) {
+                alert("Lütfen trafo kapasitesini girin!");
+                return;
+            }
+            if (!data.abone_sayisi || parseInt(data.abone_sayisi) <= 0) {
+                alert("Lütfen abone/tesisat sayısını girin!");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/trafo_capacity', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+                document.getElementById('trafo-result-container').style.display = 'block';
+
+                if (res.ok) {
+                    document.getElementById('trafo-result-ok').style.display = 'block';
+                    document.getElementById('trafo-error-msg').style.display = 'none';
+
+                    document.getElementById('trafo-res-p-kurulu').innerText = result.p_kurulu + ' kW';
+                    document.getElementById('trafo-res-s-toplam').innerText = result.s_toplam + ' kVA';
+                    document.getElementById('trafo-res-yuzde').innerText = '%' + result.trafo_yuku_yuzde;
+                    document.getElementById('trafo-res-kapasite').innerText = result.trafo_kapasitesi_kva + ' kVA';
+
+                    const statusEl = document.getElementById('trafo-res-status');
+                    if (result.yeterli_mi) {
+                        statusEl.style.background = '#f0fdf4';
+                        statusEl.style.border = '2px solid #22c55e';
+                        statusEl.style.color = '#166534';
+                        statusEl.innerHTML = '✅ Trafo kapasitesi YETERLİ';
+                    } else {
+                        statusEl.style.background = '#fee2e2';
+                        statusEl.style.border = '2px solid #ef4444';
+                        statusEl.style.color = '#991b1b';
+                        statusEl.innerHTML = '❌ Trafo kapasitesi YETERSİZ — Kapasite %' + result.asilma_miktari + ' aşılmıştır. Daha büyük kapasiteli trafo önerilir.';
+                    }
+
+                    loadHistory();
+                } else {
+                    document.getElementById('trafo-result-ok').style.display = 'none';
+                    document.getElementById('trafo-error-msg').style.display = 'block';
+                    document.getElementById('trafo-error-msg').innerHTML = '⚠️ ' + result.error;
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('trafo-result-container').style.display = 'block';
+                document.getElementById('trafo-result-ok').style.display = 'none';
+                document.getElementById('trafo-error-msg').style.display = 'block';
+                document.getElementById('trafo-error-msg').innerHTML = '⚠️ Sunucu ile bağlantı kurulamadı.';
             }
         }
 
